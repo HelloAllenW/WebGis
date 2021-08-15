@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>leaflet-canvas-marker</title>
+    <meta charset="utf-8" />
+    <!-- 引入leafletapi -->
+  <link rel="stylesheet" href="lib/leaflet.css" />
+  <script src="lib/leaflet.js"></script>
+    <!-- 引入leaflet-canvas-marker插件,已解决了缩放时飘的问题，增加了添加标签的功能 -->
+  <script src="lib/leaflet.canvas-markers.mini.js"></script>
+    <style>
+        body {
+            margin: 0;
+        }
+
+        .leftMap {
+            position: absolute;
+            height: 100%;
+            right: 50%;
+            left: 0;
+        }
+        .rightMap {
+            position: absolute;
+            height: 100%;
+            right: 0;
+            left: 50%;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="leftMap" id="leftMap"></div>
+    <div class="rightMap" id="rightMap"></div>
+    <script>
+
+        // 左边地图
+        var leftMap = L.map('leftMap', {
+            center: [39.905963, 116.390813],
+            zoom: 15,
+            preferCanvas: true //使用canvas模式渲染矢量图形 
+        });
+        var tiles = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png').addTo(leftMap); //添加底图
+
+        // 右边地图
+        var rightMap = L.map('rightMap', {
+            center: [39.905963, 116.390813],
+            zoom: 15,
+            preferCanvas: true //使用canvas模式渲染矢量图形 
+        });
+        var tiles = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png').addTo(rightMap); //添加底图
+
+
+        // 地图联动
+        var maps = [leftMap, rightMap]; // 将要联动的地图加入数组
+        function maplink(e) { // 地图联动实现
+            var _this = this;
+            maps.map(function (t) {
+            t.setView(_this.getCenter(),_this.getZoom())
+            })
+        }
+        maps.map(function (t) { //绑定
+            t.on({drag:maplink,zoom:maplink})
+        })
+
+
+        //使用canvas模式渲染marker
+        var leftCiLayer = L.canvasIconLayer({}).addTo(leftMap);
+        var rightCiLayer = L.canvasIconLayer({}).addTo(rightMap);
+
+        for (var i = 0; i < 10000; i++) {  
+            var lat = 39.905963 + (Math.random() - Math.random()) * 3;
+            var lng = 116.390813 + (Math.random() - Math.random()) * 3;
+
+            //在这里设置图片和文字，调整位置，让文字显示在图片上
+            var icon = L.icon({
+                iconUrl: './img/bg.png',
+                iconSize: [84, 34],
+                iconAnchor: [40, 20],
+
+                //添加文字
+                text:i.toString(),
+                textAnchor: [5, 0],         
+                textFont:'14px bold',       //设置字体大小和样式
+                textFillStyle:'#FFFFFF'     //设置字体颜色
+            });
+
+            var marker = L.marker([lat, lng], {
+                    icon: icon
+                })
+                .bindPopup("I Am " + i); //绑定气泡窗口
+
+            leftCiLayer.addLayer(marker);
+            rightCiLayer.addLayer(marker);
+        }
+        
+    </script>
+</body>
+
+</html>
